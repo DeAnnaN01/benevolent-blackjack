@@ -1,0 +1,15 @@
+This package uses Python's distutils.
+
+To run Benevolent Blackjack on your system, you also need to install the
+PeafowlTerm and PyPlayCards libraries, which Benevolent Blackjack uses for
+displaying terminal colors and managing cards.  Get these libraries from:
+ * http://www.qnan.org/~pmw/software/peafowlterm
+ * http://www.qnan.org/~pmw/software/pyplaycards
+
+The documentation for Benevolent Blackjack is in several places:
+- the doc/ directory
+- the manpage;
+- the source code is reasonably well commented.
+
+To run the program without installing it through distutils, run
+bbj.py in the package's root directory.

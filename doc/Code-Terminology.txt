@@ -1,0 +1,6 @@
+This file holds the terminology that the author of this game invented for lack
+of an official term.  Knowing this terminology will help to understand the
+source code.
+
+SEQUENCE: a set of cards associated with a wager.  In a typical round, each
+player plays a sequence.  If a player splits, he plays two sequences.

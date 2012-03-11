@@ -1,0 +1,224 @@
+.TH BBJ 6 "11 June 2009"
+.SH NAME
+bbj \- Benevolent Blackjack
+.SH SYNOPSIS
+.B bbj
+.I [[option1] [option2] [...]]
+.SH DESCRIPTION
+.B bbj
+is a console-based program that plays a game of Blackjack against you, acting as the dealer.
+Benevolent Blackjack supports several advanced features, including flexible table rules, insurance, and coplayers.
+
+In addition to happily playing the role of an apathetic dealer, Benevolent Blackjack can benevolently advise you on whether you are making optimal decisions to minimize the house edge.
+The program can also train you to count cards.
+.SS Blackjack: what it is and how to play
+The program assumes that you are already familiar with Blackjack.
+This section summarizes the basics of the game.
+
+Your goal in Blackjack is to get as close as possible to 21 points without going over, while still having a higher total than the dealer.
+
+A game of Blackjack has up to seven players playing against one dealer.
+Each player plays his hand against the dealer independently from other players.
+
+Each card in Blackjack has a point value: cards 10 and below are worth their face value, Jack through King are 10 points each, and Aces are 1 or 11 points (your choice for your hand; the dealer's choice for his).
+In each round, your goal is to get your hand as close as possible to 21 points without going over ("busting").
+
+You -- the player -- start a round by making a bet.
+Then the dealer deals you two cards face-up and himself two cards: one face down ("hole card") and one face up ("upcard").
+Once you receive your two cards, you can hit (receive another card), split your hand (play two hands simultaneously), double down (double your bet and get exactly one additional card), stay (receive no more cards), or surrender.
+You can hit until either you bust or you are satisfied with your hand.
+Note: You may not be able to double down or surrender if the table rules prohibit these actions.
+
+If you bust, the round ends and the dealer wins.
+If you surrender, the round ends and the dealer takes half of your bet.
+If you stay without busting, the dealer plays out his hand, hitting until his hand has 17 or more points.
+If the dealer busts, the round ends and you win.
+If neither of you busts, whoever's hand is closest to 21 wins.
+If there is a tie, the round is considered a push and you keep your bet.
+
+If the dealer wins, he takes your bet.
+If you win, you keep the bet and the dealer pays you an amount equal to your bet.
+.SS Finer Points
+BLACKJACK:
+A "blackjack" is defined as having a pair of cards one of which is an Ace and the other is a 10-valued card.
+Whoever has a Blackjack wins, unless the other person has a Blackjack too.
+If both you and the dealer have a Blackjack on the same round, the round is a push.
+If you have a Blackjack while the dealer doesn't, your bet increases by the table's Blackjack payout, which is by default 3:2.
+That is, if you bet $100 and get a Blackjack, the dealer pays you $150.
+
+SOFT 17:
+A "soft 17" is defined as a hand worth 17 points with at least one Ace counting as 11 points rather than one.
+If the dealer has a soft 17, then whether he hits or stays depends on how the table is configured.
+
+FIVE-CARD CHARLIE:
+"Five-Card Charlie" is a feature of the table that gives you an automatic win if you draw five cards without busting and the dealer does not have a Blackjack.
+
+INSURANCE:
+Insurance is an option the dealer will offer you if his upcard is an Ace: you may insure against the dealer having a Blackjack.
+You can pay up to half of your original bet for the insurance.
+Once you buy (or refuse to buy) insurance, you play out the hand normally.
+If the dealer has a Blackjack, insurance pays you twice the amount you paid for it.
+This insurance is entirely separate from your original bet; you can win both, lose both, or win one but lose the other.
+.SS Further Reading
+Wikipedia, a free online encyclopedia, has a lot more information about Blackjack.
+There are also numerous books about (or involving) Blackjack at your local public library.
+.SH BASIC STRATEGY AND COUNTING CARDS
+By using a good strategy, a player can minimize his losses.
+The best known strategy for Blackjack is called "basic strategy."
+Benevolent Blackjack knows basic strategy and can benevolently inform you when you're not following it.
+The basic strategy tables were taken from Wikipedia with several modifications from Richard A. Epstein's "The Theory of Gambling and Statistical Logic," revised edition.
+
+Employing basic strategy does not mean that Blackjack turns favorable for you.
+Basic strategy reduces the house's edge, but in the long run you are still expected to lose.
+Card-counting techniques turn Blackjack favorable for you.
+Teaching card-counting is outside the scope of this manual, but there are many helpful resources online.
+Once you learn about a card-counting technique, you can configure Benevolent Blackjack to count cards using several popular techniques and either show you the count or occasionally quiz you about the table's current count.
+
+These features help you to perfect your Blackjack skills so that you can someday win millions of dollars.
+.SH COPLAYERS
+Benevolent Blackjack supports a configurable number of coplayers at your table.
+
+These coplayers have little effect on your gameplay.
+Their purpose is to enhance realism, to increase the challenge of counting cards, and to add variance to your hands.
+
+Each coplayer's strategy is very simple.
+It depends on his hand's point total (without regard for Ace combinations) and the dealer's upcard.
+Coplayers will never split.
+.SH INPUT
+Because Benevolent Blackjack is a console-based program, input is not as intuitive as in GUI programs.
+
+There are two occasions that require the player's input: the amount of the bet and the action to take.
+Both inputs are via the keyboard.
+
+The bet amount is always an integer.
+
+There are at most five actions: hit, stand, double, split, and surrender.
+A unique character of each of these is highlighted.
+You enter the desired action as the action's highlighted character followed by Enter.
+.SH PROGRAM OPTIONS
+Benevolent Blackjack has many options that affect the dealer's behavior, table rules, and the overall experience.
+All program arguments are optional.
+If you do not specify any, reasonable defaults are used.
+
+The game's author recommends creating a shell script (on Unix) or a batch file (on Windows) that runs BBJ with your preferences.
+.TP
+\fB--numdecks=\fIN\fP
+The number of decks that the dealer's shoe holds.
+This argument requires a positive integer.
+The default is 4.
+.TP
+\fB--dealergender=\fI...\fP
+The dealer's gender: "m" for male or "f" for female.
+This setting has no effect on gameplay; it simply affects the pronouns referring to the dealer.
+The default is a random selection.
+.TP
+\fB--dealerdelay=\fIN\fP
+The number of seconds it take the dealer to perform an action such as dealing a card or revealing his cards.
+The purpose of this setting is to add realism to gameplay.
+The default is 2.
+.TP
+\fB--coplayright=\fIN\fP
+The number of coplayers at your table seated to your right.
+These players play before your turn.
+The default is 1.
+.TP
+\fB--coplayleft=\fIN\fP
+The number of coplayers at your table seated to your left.
+These players play after your turn.
+The default is 1.
+.TP
+\fB--tablemin=\fIN\fP
+The table minimum, in dollars.
+This argument requires a non-negative integer which must be at most as large as the table maximum.
+The default is 10.
+.TP
+\fB--tablemax=\fIN\fP
+The table maximum, in dollars.
+This argument requires a non-negative integer which must be at least as large as the table minimum.
+The default is 100.
+.TP
+\fB--shufflethresh=\fIN\fP
+The largest number of cards remaining in the shoe that require a reshuffle and a refill of the shoe.
+For example, if the shuffle threshold is set to 20, then if a round finishes with 21 cards, a new round can start immediately, whereas if a round finishes with 20 cards or fewer, the dealer will reshuffle and refill the shoe.
+If you choose a shuffle threshold low enough that the shoe can run out of cards during a round, the program will refuse to start.
+The default is 50.
+.TP
+\fB--bjpayout=\fIN\fP:\fIM\fP
+The Blackjack payout ratio.
+The value must be two integers separated by a colon.
+The default is 3:2.
+.TP
+\fB--initbalance=\fIN\fP
+The player's initial balance, in dollars.
+The default is 500.
+.TP
+\fB--countstrategy=\fI<name>\fP
+The card-counting strategy to use.
+Benevolent Blackjack knows three: KO ("ko"), Hi-Lo ("hi-lo") and Zen Count ("zen").
+Just enabling a count strategy does not change the outward behavior of the game; this option should be joined by \fB--countquiz\fP or \fB--show-cardcount\fP.
+The default is none.
+.TP
+\fB--countquiz=\fIN\fP
+This option enables periodic quizzing about the card-count state of the table.
+The argument is the number of Blackjack rounds between quizzes.
+The default is 0, which turns off this feature.
+.TP
+\fB--coloring=\fI<setting>\fP
+This option controls the program's use of color on the terminal.
+There are three arguments: "off" turns off all coloring, "darkbg" sets colors suitable for a dark background, and "lightbg" sets colors suitable for a light background.
+Note: this setting does not affect the color of your background.
+.TP
+\fB--benevolent\fP
+The "benevolent" option is where the program gets its name.
+When this option is enabled, Benevolent Blackjack analyzes the player's actions and displays a warning when an action fails to follow basic strategy.
+.TP
+\fB--disallow-double\fP
+Disallow the player to double his bet.
+.TP
+\fB--disallow-surrender\fP
+Disallow the player to surrender.
+.TP
+\fB--allow-das\fP
+Allow the player to double his bet after splitting.
+.TP
+\fB--allow-hitsa\fP
+Allow the player to hit split Aces.
+.TP
+\fB--soft17hit\fP
+Have the dealer hit on soft 17 rather than stand.
+.TP
+\fB--enable-5cc\fP
+Enable Five-Card Charlie.
+Five-Card Charlie is described earlier in the manual.
+.TP
+\fB--show-cardcount\fP
+Show the current card count before every round.
+This option requires a card-counting strategy to be selected using \fB--countstrategy\fP.
+.TP
+\fB--help\fP
+Shows a list of program options and their default values.
+.TP
+\fB--version\fP
+Shows the program version.
+.SH BBJ ON MICROSOFT WINDOWS
+Benevolent Blackjack runs on Microsoft Windows with the help of Py2Exe.
+BBJ on Windows does not support Unicode representations of card suits.
+Whereas on Linux (and probably other platforms) a Jack of Hearts appears as a heart with a "J" next to it, on Windows the same card appears as "J/h".
+The card notation on Windows is the rank followed by a slash followed by the first letter of the name of the suit.
+
+Other than a lack of support for Unicode symbols, there are no known issues with Benevolent Blackjack on Windows.
+.SH DIAGNOSTICS
+The program exits with a non-zero return code if something went wrong.
+.SH CAVEATS
+.SS Currency
+The smallest unit of currency in this program is one dollar.
+The dollar cannot be subdivided, so in certain situations (buying insurance, for one) the program performs integer division.
+For example, if you bet $11 and the dealer has an Ace upcard, you will be offered insurance for $5 maximum rather than the expected $5.50.
+Please do not bet odd amounts if this bothers you.
+.SS Exiting the program
+In true Unix style, a user can exit Benevolent Blackjack by pressing Ctrl-C at any time.
+There is no explicit "exit" command.
+.SH BUGS
+There are no bugs that I am aware of.
+.SH AUTHOR
+Philip M. White <pmw@qnan.org>
