@@ -1,14 +1,27 @@
+Benevolent Blackjack is a cross-platform console-based program that plays a game of Blackjack against you, acting as the dealer and (optionally) any number of co-players.  In addition to being able to play the role of an apathetic dealer, Benevolent Blackjack has two unique features: it can benevolently advise you on whether you are making optimal decisions to minimize the house edge, and it can train you to count cards.
+
+Features
+========
+
+* BBJ supports a configurable number of artificial co-players at your table.
+* BBJ has flexible table rules.  It can enforce rules about a table minimum and maximum, doubling down, surrender, doubling after split, and hitting split Aces.  You can configure the number of decks, the Blackjack payout ratio, whether the dealer hits on soft 17, and whether Five-Card Charlie is enabled.
+* BBJ supports insurance.
+* BBJ can advise you when you fail to follow basic strategy.
+* BBJ can train you to count cards accurately.
+* BBJ is cross-platform, thanks to Python.  It can run on Linux, Windows, MacOS X, Palm handhelds, Nokia mobile phones, and any other platform that Python supports.
+* BBJ is console-based.  This has many advantages.  BBJ does not rely on any graphical toolkit, any window system, or even on having a mouse.  It can be played over Telnet or SSH.  It can appear as "work" unless one looks closely enough.
+* BBJ uses terminal colors.  You can set coloring suitable for a dark background, suitable for a light background, or disable coloring.
+
+Installing
+==========
+
 This package uses Python's distutils.
 
-To run Benevolent Blackjack on your system, you also need to install the
-PeafowlTerm library, which Benevolent Blackjack uses for displaying terminal
-colors.  Get it from:
- * http://www.qnan.org/~pmw/software/peafowlterm
+To run Benevolent Blackjack on your system, you also need to install the PeafowlTerm library, which Benevolent Blackjack uses for displaying terminal colors.  Get it from https://bitbucket.org/philipmw/peafowlterm.
 
 The documentation for Benevolent Blackjack is in several places:
-- the doc/ directory
-- the manpage;
-- the source code is reasonably well commented.
+* the doc/ directory
+* the manpage;
+* the source code is reasonably well commented.
 
-To run the program without installing it through distutils, run
-bbj.py in the package's root directory.
+To run the program without installing it through distutils, run bbj.py in the package's root directory.
