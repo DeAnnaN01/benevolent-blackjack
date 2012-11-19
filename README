@@ -20,6 +20,7 @@ This package uses Python's distutils.
 To run Benevolent Blackjack on your system, you also need to install the PeafowlTerm library, which Benevolent Blackjack uses for displaying terminal colors.  Get it from https://bitbucket.org/philipmw/peafowlterm.
 
 The documentation for Benevolent Blackjack is in several places:
+
 * the doc/ directory
 * the manpage;
 * the source code is reasonably well commented.
