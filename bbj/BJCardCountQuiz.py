@@ -11,7 +11,7 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 # more details.
 
-from BJException import *
+from bbj.BJException import *
 
 # closestBelow finds the index of the element in 'list' closest to 'v' such
 # that the element is smaller or equal to 'v'.
@@ -28,9 +28,9 @@ from BJException import *
 #    its index is returned.  Otherwise, -1 is returned.
 def closestBelow(list, v):
 	if len(list) == 0:
-		raise BJException, "received an empty list"
+		raise BJException("received an empty list")
 	if list[0] > v:
-		raise BJException, "no element that meets criteria"
+		raise BJException("no element that meets criteria")
 	for i in range(len(list)):
 		if list[i] > v:
 			return i-1

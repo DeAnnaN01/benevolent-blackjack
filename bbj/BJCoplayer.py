@@ -11,8 +11,8 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 # more details.
 
-import BJPlayerAction
-import BJStrategy
+import bbj.BJPlayerAction
+import bbj.BJStrategy
 
 # Instances of BJCoplayer hold the state and make decisions for the coplayers
 # sitting at the table.
@@ -28,24 +28,24 @@ class BJCoplayer:
 
 	def takeCards(self, cards):
 		self.cards += cards
-		self.score = BJStrategy.getBestScore(self.cards)
+		self.score = bbj.BJStrategy.getBestScore(self.cards)
 
 	def getAction(self, card_dealer):
 		if self.score >= 17:
-			return BJPlayerAction.Stand
-		elif self.score == 16 and BJStrategy.getHardValue(card_dealer) >= 9:
-			return BJPlayerAction.Surrender
-		elif self.score == 15 and BJStrategy.getHardValue(card_dealer) == 10:
-			return BJPlayerAction.Surrender
+			return bbj.BJPlayerAction.Stand
+		elif self.score == 16 and bbj.BJStrategy.getHardValue(card_dealer) >= 9:
+			return bbj.BJPlayerAction.Surrender
+		elif self.score == 15 and bbj.BJStrategy.getHardValue(card_dealer) == 10:
+			return bbj.BJPlayerAction.Surrender
 		elif self.score > 13:
-			if BJStrategy.getSoftValue(card_dealer) >= 7:
-				return BJPlayerAction.Hit
+			if bbj.BJStrategy.getSoftValue(card_dealer) >= 7:
+				return bbj.BJPlayerAction.Hit
 			else:
-				return BJPlayerAction.Stand
+				return bbj.BJPlayerAction.Stand
 		elif self.score > 9 and len(self.cards) == 2:
-				return BJPlayerAction.Double
+				return bbj.BJPlayerAction.Double
 		else:
-			return BJPlayerAction.Hit
+			return bbj.BJPlayerAction.Hit
 
 	def __str__(self):
 		return self.ID

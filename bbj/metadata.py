@@ -15,9 +15,9 @@ productname = 'Benevolent Blackjack'
 versionstr = '1.0'
 copyright = 'Copyright (C) 2012 Philip M. White'
 author = 'Philip M. White'
-author_email = 'pmw@qnan.org'
+author_email = 'philip@mailworks.org'
 description = 'A console-based Blackjack program that can teach basic strategy and card-counting.'
-homepage = 'http://www.qnan.org/~pmw/software/bbj'
+homepage = 'https://github.com/philipmw/benevolent-blackjack'
 license = '''This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or

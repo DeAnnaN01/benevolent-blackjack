@@ -13,7 +13,7 @@
 
 import time
 
-from BJException import *
+from bbj.BJException import *
 
 Female = 0
 Male = 1
@@ -24,7 +24,7 @@ class BJDealer:
 	def __init__(self, gender, shoe, reshuffleThresh, delay):
 		self.gender = gender
 		if self.gender != Male and self.gender != Female:
-			raise BJException, "The dealer's gender must be male or female."
+			raise BJException("The dealer's gender must be male or female.")
 		self.shoe = shoe
 		self.reshuffleThresh = reshuffleThresh
 		self.delay = delay

@@ -11,10 +11,10 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 # more details.
 
-from Card import Card
-from Deck import Deck
+from bbj.Card import Card
+from bbj.Deck import Deck
 
-from BJException import *
+from bbj.BJException import *
 
 numSuits = 4
 
@@ -44,5 +44,5 @@ class BJDeck(Deck):
 				self.cards.append(Card(suit, rank))
 			numSuitsNow += 1
 		if numSuits != numSuitsNow:
-			raise BJException, "Blackjack requires %d suits; instead we have %d." % (numSuits, numSuitsNow)
+			raise BJException("Blackjack requires %d suits; instead we have %d." % (numSuits, numSuitsNow))
 		self.shuffle()

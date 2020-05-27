@@ -11,17 +11,16 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 # more details.
 
-import peafowlterm
-from peafowlterm import ColorScheme, ColoredString, ColoredText
-import sys
+from functools import reduce
 
-import BJPlayerAction
-import BJRoundOutcome
-import BJSeqOutcome
-import BJStrategy
-from Card import Card
-from Dollars import *
-from Purse import PurseException
+import bbj.BJPlayerAction
+from bbj.BJRoundOutcome import BJRoundOutcome
+import bbj.BJSeqOutcome
+import bbj.BJStrategy
+from bbj.Card import Card
+from bbj.Purse import PurseException
+from bbj.money import fmtMoney
+from bbj.peafowlterm import *
 
 # iPrint writes a message to a stream and indents is by a certain amount.
 # Preconditions:
@@ -36,6 +35,7 @@ def iPrint(msg, stream, indent):
 	spc += reduce(lambda x,y: x+y, map(lambda x: ' ', range(indent)), '')
 	stream.write(spc)
 	msg.display()
+	stream.flush()
 
 # playerGetAction asks the user for his desired action.
 # Preconditions:
@@ -46,7 +46,7 @@ def iPrint(msg, stream, indent):
 # - a member of BJPlayerAction is returned
 def playerGetAction(ruleset, indent, can_split):
 	def makeColoredAction(actionTuple):
-		actionKeyColor = ColorScheme(peafowlterm.ColorYellow, peafowlterm.ColorOrange)
+		actionKeyColor = ColorScheme(ColorYellow, ColorOrange)
 		tmpStr = ColoredText(ColoredString(actionTuple[0][0:actionTuple[1]])) + \
 			ColoredString(actionTuple[0][actionTuple[1]], actionKeyColor) + \
 			ColoredString(actionTuple[0][actionTuple[1]+1:])
@@ -62,15 +62,15 @@ def playerGetAction(ruleset, indent, can_split):
 		return None
 
 	allowedActions = [
-		('hit', 0, BJPlayerAction.Hit),
-		('stand', 0, BJPlayerAction.Stand),
+		('hit', 0, bbj.BJPlayerAction.Hit),
+		('stand', 0, bbj.BJPlayerAction.Stand),
 	]
 	if can_split:
-		allowedActions.append(('split', 1, BJPlayerAction.Split))
+		allowedActions.append(('split', 1, bbj.BJPlayerAction.Split))
 	if ruleset.allowDouble:
-		allowedActions.append(('double', 0, BJPlayerAction.Double))
+		allowedActions.append(('double', 0, bbj.BJPlayerAction.Double))
 	if ruleset.allowSurrender:
-		allowedActions.append(('surrender', 1, BJPlayerAction.Surrender))
+		allowedActions.append(('surrender', 1, bbj.BJPlayerAction.Surrender))
 	actionMsg = ColoredText(ColoredString("You can "))
 	for i in range(len(allowedActions)):
 		actionTuple = allowedActions[i]
@@ -97,7 +97,7 @@ def playerGetAction(ruleset, indent, can_split):
 # - an amount between [1, maxBet] is returned, or None if the player does not want insurance
 def playerGetInsuranceDecision(maxBet):
 	indent = 0
-	insuranceColor = ColorScheme(peafowlterm.ColorLime, peafowlterm.ColorGreen)
+	insuranceColor = ColorScheme(ColorLime, ColorGreen)
 	if maxBet < 1:
 		return None
 	insYN = None
@@ -117,18 +117,18 @@ def playerGetInsuranceDecision(maxBet):
 	if not insYN:
 		return insAmount
 	while insAmount is None:
-		iPrint(ColoredString("How much to bet for insurance? (Max: %s) $" % maxBet), sys.stdout, indent)
+		iPrint(ColoredString("How much to bet for insurance? (Max: %s) $" % fmtMoney(maxBet)), sys.stdout, indent)
 		try:
 			amt = int(sys.stdin.readline().strip())
-		except ValueError, e:
+		except ValueError as e:
 			sys.stderr.write("Error: you must enter an integer.\n")
 			continue
 		if amt > maxBet:
-			iPrint(ColoredString("Your insurance bet must be at most %s.\n" % maxBet, stream=sys.stderr), sys.stderr, indent)
+			iPrint(ColoredString("Your insurance bet must be at most %s.\n" % fmtMoney(maxBet), stream=sys.stderr), sys.stderr, indent)
 		elif amt < 1:
-			iPrint(ColoredString("Your insurance bet must be at least $1.\n", stream=sys.stderr), sys.stderr, indent)
+			iPrint(ColoredString("Your insurance bet must be at least %s.\n" % fmtMoney(1), stream=sys.stderr), sys.stderr, indent)
 		else:
-			insAmount = Dollars(amt)
+			insAmount = amt
 	return insAmount
 
 # playerGetBet asks the user how much to bet.
@@ -138,17 +138,17 @@ def playerGetInsuranceDecision(maxBet):
 # - arg 'betMax': an integer
 # - betMin <= betMax
 # Postconditions:
-# - an instance of Dollars is returned
+# - bet is returned
 def playerGetBet(purse, betMin, betMax):
 	gotBet = False
 	while not gotBet:
 		sys.stdout.write("Your balance: %s.  Your bet: $" % purse)
+		sys.stdout.flush()
 		try:
 			amt = int(sys.stdin.readline().strip())
-		except ValueError, e:
+		except ValueError as e:
 			sys.stderr.write("Error: you must enter an integer.\n")
 			continue
-		amt = Dollars(amt)
 		if amt < betMin:
 			print("The table minimum is %s." % betMin)
 			continue
@@ -158,7 +158,7 @@ def playerGetBet(purse, betMin, betMax):
 		try:
 			purse.reserve(amt)
 			gotBet = True
-		except PurseException, e:
+		except PurseException as e:
 			sys.stderr.write("Error: %s\n" % e)
 	return amt
 
@@ -170,8 +170,8 @@ def playerGetBet(purse, betMin, betMax):
 def blackjack(cards):
 	if len(cards) != 2:
 		return False
-	return (BJStrategy.getHardValue(cards[0]) == 11 and BJStrategy.getHardValue(cards[1]) == 10) or \
-		(BJStrategy.getHardValue(cards[1]) == 11 and BJStrategy.getHardValue(cards[0]) == 10)
+	return (bbj.BJStrategy.getHardValue(cards[0]) == 11 and bbj.BJStrategy.getHardValue(cards[1]) == 10) or \
+		(bbj.BJStrategy.getHardValue(cards[1]) == 11 and bbj.BJStrategy.getHardValue(cards[0]) == 10)
 
 # bust determines whether the given cards go over 21 points.
 # Preconditions:
@@ -179,7 +179,7 @@ def blackjack(cards):
 # Postconditions:
 # - returns True if minimum score is over 21; else False
 def bust(cards):
-	return BJStrategy.getMinScore(cards) > 21
+	return bbj.BJStrategy.getMinScore(cards) > 21
 
 # playSequence plays a sequence of the main player.  ("Sequence" is defined in doc/.)
 # Preconditions:
@@ -188,7 +188,7 @@ def bust(cards):
 # - arg 'purse': an instance of BJPurse
 # - arg 'cards_mine': a list of Card objects
 # - arg 'card_dealer': an instance of Card
-# - arg 'bet': an instance of Dollars
+# - arg 'bet': a float
 # - arg 'can_split': boolean
 # - cards_mine has at least two elements
 # - card_dealer is the face-up card of the dealer
@@ -208,27 +208,27 @@ def playSequence(settings, dealer, purse, cards_mine, card_dealer, bet, indent, 
 	yourCardsDisplay += ColoredString(".\n")
 	iPrint(yourCardsDisplay, sys.stdout, indent)
 	if blackjack(cards_mine):
-		outcome = BJSeqOutcome.BJ
+		outcome = bbj.BJSeqOutcome.BJ
 		payoutMultiplier = float(settings['ruleset'].blackjackPayout['n']) / settings['ruleset'].blackjackPayout['d']
 	# If we split on aces, do not allow the user any further actions.
 	if not can_split and cards_mine[0] == Card.R_Ac and not settings['ruleset'].allowHitSplitAces:
-		outcome = BJSeqOutcome.Unsure
+		outcome = bbj.BJSeqOutcome.Unsure
 
 	while outcome is None:
-		action_ideal = BJStrategy.optimalFind(settings['ruleset'], cards_mine, card_dealer)
+		action_ideal = bbj.BJStrategy.optimalFind(settings['ruleset'], cards_mine, card_dealer)
 		action_player = playerGetAction(settings['ruleset'], indent, can_split)
 
-		if action_player == BJPlayerAction.Stand:
-			outcome = BJSeqOutcome.Unsure
+		if action_player == bbj.BJPlayerAction.Stand:
+			outcome = bbj.BJSeqOutcome.Unsure
 			if action_player != action_ideal:
 				strategyIsGood = False
 			continue
-		if action_player == BJPlayerAction.Surrender:
-			outcome = BJSeqOutcome.Surrender
+		if action_player == bbj.BJPlayerAction.Surrender:
+			outcome = bbj.BJSeqOutcome.Surrender
 			if action_player != action_ideal:
 				strategyIsGood = False
 			continue
-		if action_player == BJPlayerAction.Double:
+		if action_player == bbj.BJPlayerAction.Double:
 			if len(cards_mine) > 2:
 				iPrint(ColoredString("You can double only on your first two cards.\n"), sys.stderr, indent)
 				continue
@@ -237,13 +237,13 @@ def playSequence(settings, dealer, purse, cards_mine, card_dealer, bet, indent, 
 				continue
 			try:
 				purse.reserve(bet)
-			except PurseException, e:
+			except PurseException as e:
 				iPrint(ColoredString("Could not double: %s\n" % e), sys.stderr, indent)
 				continue
 			bet *= 2
 			if action_player != action_ideal:
 				strategyIsGood = False
-		if action_player == BJPlayerAction.Double or action_player == BJPlayerAction.Hit:
+		if action_player == bbj.BJPlayerAction.Double or action_player == bbj.BJPlayerAction.Hit:
 			if action_player != action_ideal:
 				strategyIsGood = False
 			card = dealer.getCard()
@@ -254,24 +254,24 @@ def playSequence(settings, dealer, purse, cards_mine, card_dealer, bet, indent, 
 			iPrint(dealsYou, sys.stdout, indent)
 			dealer.pause()
 			cards_mine.append(card)
-			if BJStrategy.getBestScore(cards_mine) == 21:
-				outcome = BJSeqOutcome.Unsure
+			if bbj.BJStrategy.getBestScore(cards_mine) == 21:
+				outcome = bbj.BJSeqOutcome.Unsure
 			elif bust(cards_mine):
-				outcome = BJSeqOutcome.Bust
-			elif (len(cards_mine) == 5 and settings['ruleset'].fiveCardCharlie) or action_player == BJPlayerAction.Double:
-				outcome = BJSeqOutcome.Unsure
+				outcome = bbj.BJSeqOutcome.Bust
+			elif (len(cards_mine) == 5 and settings['ruleset'].fiveCardCharlie) or action_player == bbj.BJPlayerAction.Double:
+				outcome = bbj.BJSeqOutcome.Unsure
 			continue
-		if action_player == BJPlayerAction.Split:
+		if action_player == bbj.BJPlayerAction.Split:
 			if len(cards_mine) != 2:
 				iPrint(ColoredString("You can split only when you have two cards.\n"), sys.stderr, indent)
 				continue
-			if BJStrategy.getHardValue(cards_mine[0]) != BJStrategy.getHardValue(cards_mine[1]):
+			if bbj.BJStrategy.getHardValue(cards_mine[0]) != bbj.BJStrategy.getHardValue(cards_mine[1]):
 				iPrint(ColoredString("You can split only when your two cards have the same value.\n"), sys.stderr, indent)
 				continue
 			# Try to reserve another bet of the same amount
 			try:
 				purse.reserve(bet)
-			except PurseException, e:
+			except PurseException as e:
 				iPrint(ColoredString("Cannot split: %s\n" % e), sys.stderr, indent)
 				continue
 			if action_player != action_ideal:
@@ -300,11 +300,11 @@ def playSequence(settings, dealer, purse, cards_mine, card_dealer, bet, indent, 
 			outcome2 = playSequence(settings, dealer, purse, [cards_mine[1], newcard], card_dealer, bet, indent+indentLevel, False)
 			return [outcome1[0], outcome2[0]]
 	if not strategyIsGood and settings['benevolent']:
-		badStrategyColor = ColorScheme(peafowlterm.ColorOrange, peafowlterm.ColorOrange)
+		badStrategyColor = ColorScheme(ColorOrange, ColorOrange)
 		iPrint(ColoredString("You used bad strategy.\n", badStrategyColor), sys.stdout, indent)
 	if len(cards_mine) == 5 and settings['ruleset'].fiveCardCharlie and not bust(cards_mine):
-		return [BJSeqOutcome.BJSeqOutcome(BJSeqOutcome.FCC, bet, payoutMultiplier, cards_mine)]
-	return [BJSeqOutcome.BJSeqOutcome(outcome, bet, payoutMultiplier, cards_mine, BJStrategy.getBestScore(cards_mine))]
+		return [bbj.BJSeqOutcome.BJSeqOutcome(BJSeqOutcome.FCC, bet, payoutMultiplier, cards_mine)]
+	return [bbj.BJSeqOutcome.BJSeqOutcome(outcome, bet, payoutMultiplier, cards_mine, bbj.BJStrategy.getBestScore(cards_mine))]
 
 # playRound plays a single round, including coplayers.
 # Once the round is played, playRound settles the wins and losses.
@@ -323,7 +323,7 @@ def playSequence(settings, dealer, purse, cards_mine, card_dealer, bet, indent, 
 # - dealer and purse are affected
 def playRound(settings, dealer, purse):
 	bet = playerGetBet(purse, settings['ruleset'].tableMin, settings['ruleset'].tableMax)
-	roundOutcome = BJRoundOutcome.BJRoundOutcome(bet)
+	roundOutcome = BJRoundOutcome(bet)
 
 	cards_dealer = [dealer.getCard(), dealer.getCard()]
 	settings['cardcount'].add(cards_dealer[1])
@@ -342,12 +342,12 @@ def playRound(settings, dealer, purse):
 	# If we don't have a blackjack, the dealer's upcard is an Ace, and
 	# the dealer can ask for at least a dollar for insurance, then offer insurance.
 	insuranceCost = None
-	if not blackjack(cards_mine) and BJStrategy.getHardValue(cards_dealer[1]) == 11:
+	if not blackjack(cards_mine) and bbj.BJStrategy.getHardValue(cards_dealer[1]) == 11:
 		insuranceCost = playerGetInsuranceDecision(min(purse.getReservable(), bet/2))
 		if insuranceCost is not None:
 			try:
 				purse.reserve(insuranceCost)
-			except PurseException, e:
+			except PurseException as e:
 				# How could this happen?  I don't think it can...
 				iPrint(ColoredString("Could not purchase insurance: %s.\n" % e, stream=sys.stderr), sys.stderr, indent)
 				insuranceCost = None
@@ -364,7 +364,7 @@ def playRound(settings, dealer, purse):
 	if insuranceCost is not None:
 		dealerExposesForPlayer = True
 	for outcome in outcomeList:
-		if outcome.outcome != BJSeqOutcome.Bust:
+		if outcome.outcome != bbj.BJSeqOutcome.Bust:
 			dealerExposesForPlayer = True
 			break
 	for coplayer in settings['coplayObjLeft']+settings['coplayObjRight']:
@@ -388,14 +388,14 @@ def playRound(settings, dealer, purse):
 			if insuranceCost is not None:
 				dividend = insuranceCost * 2
 				purse.release(insuranceCost)
-				print("Your insurance policy pays dividends: the dealer gives you %s." % dividend)
+				print("Your insurance policy pays dividends: the dealer gives you %s." % fmtMoney(dividend))
 				purse.change(insuranceCost * 2)
 			for outcome in outcomeList:
 				# If we both don't have a Blackjack...
-				if outcome.outcome != BJSeqOutcome.BJ:
-					outcome.outcome = BJSeqOutcome.GenericLost
+				if outcome.outcome != bbj.BJSeqOutcome.BJ:
+					outcome.outcome = bbj.BJSeqOutcome.GenericLost
 				else:
-					outcome.outcome = BJSeqOutcome.Push
+					outcome.outcome = bbj.BJSeqOutcome.Push
 		else:
 			if insuranceCost is not None:
 				# The insurance didn't work out.
@@ -405,7 +405,7 @@ def playRound(settings, dealer, purse):
 
 	# Now that the dealer doesn't have a Blackjack, we reduce our bet if the player surrendered.
 	for outcome in outcomeList:
-		if outcome.outcome == BJSeqOutcome.Surrender:
+		if outcome.outcome == bbj.BJSeqOutcome.Surrender:
 			releasedBet = bet/2
 			purse.release(releasedBet)
 			outcome.bet -= releasedBet
@@ -414,27 +414,27 @@ def playRound(settings, dealer, purse):
 	# Immediate wins, losses, or pushes, without the dealer playing out his hand
 	while i < len(outcomeList):
 		outcome = outcomeList[i].outcome
-		if outcome < BJSeqOutcome.Unsure:
+		if outcome < bbj.BJSeqOutcome.Unsure:
 			moneyDelta = outcomeList[i].bet
 			playStr = ColoredText(ColoredString("Your play ")) + \
 				getPrintableListofCards(outcomeList[i].cardsPlayed) + \
 				ColoredString(" loses immediately.  The dealer takes your ") + \
-				ColoredString("%s.\n" % moneyDelta)
+				ColoredString("%s.\n" % fmtMoney(moneyDelta))
 			playStr.display()
 			purse.release(moneyDelta)
 			purse.change(moneyDelta * (-1))
 			outcomeList[i:i+1] = []
-		elif outcome == BJSeqOutcome.BJ or outcome == BJSeqOutcome.FCC:
+		elif outcome == bbj.BJSeqOutcome.BJ or outcome == bbj.BJSeqOutcome.FCC:
 			purse.release(outcomeList[i].bet)
 			moneyDelta = outcomeList[i].bet * outcomeList[i].payoutMultiplier
 			playStr = ColoredText(ColoredString("Your play ")) + \
 				getPrintableListofCards(outcomeList[i].cardsPlayed) + \
 				ColoredString(" wins immediately.  The dealer gives you ") + \
-				ColoredString("%s.\n" % moneyDelta)
+				ColoredString("%s.\n" % fmtMoney(moneyDelta))
 			playStr.display()
 			purse.change(moneyDelta)
 			outcomeList[i:i+1] = []
-		elif outcome == BJSeqOutcome.Push:
+		elif outcome == bbj.BJSeqOutcome.Push:
 			playStr = ColoredText(ColoredString("Your play ")) + \
 				getPrintableListofCards(outcomeList[i].cardsPlayed) + \
 				ColoredString(" is a push.\n")
@@ -447,8 +447,8 @@ def playRound(settings, dealer, purse):
 		return roundOutcome
 
 	# Dealer plays out his hand
-	dealer_bestscore = BJStrategy.getBestScore(cards_dealer)
-	dealer_minscore = BJStrategy.getMinScore(cards_dealer)
+	dealer_bestscore = bbj.BJStrategy.getBestScore(cards_dealer)
+	dealer_minscore = bbj.BJStrategy.getMinScore(cards_dealer)
 	while dealer_bestscore < 17 or (settings['ruleset'].hitSoft17 and dealer_bestscore == 17 and dealer_minscore < 17):
 		card = dealer.getCard()
 		settings['cardcount'].add(card)
@@ -458,8 +458,8 @@ def playRound(settings, dealer, purse):
 		dealsSelfStr.display()
 		dealer.pause()
 		cards_dealer.append(card)
-		dealer_bestscore = BJStrategy.getBestScore(cards_dealer)
-		dealer_minscore = BJStrategy.getMinScore(cards_dealer)
+		dealer_bestscore = bbj.BJStrategy.getBestScore(cards_dealer)
+		dealer_minscore = bbj.BJStrategy.getMinScore(cards_dealer)
 
 	if len(outcomeList) == 0:
 		return roundOutcome
@@ -469,7 +469,7 @@ def playRound(settings, dealer, purse):
 		for outcome in outcomeList:
 			purse.release(outcome.bet)
 			reward = outcome.bet * outcome.payoutMultiplier
-			print("The dealer gives you %s." % reward)
+			print("The dealer gives you %s." % fmtMoney(reward))
 			purse.change(reward)
 		return roundOutcome
 	for outcome in outcomeList:
@@ -479,7 +479,7 @@ def playRound(settings, dealer, purse):
 			playStr = ColoredText(ColoredString("Your play ")) + \
 				getPrintableListofCards(outcome.cardsPlayed) + \
 				ColoredString(" wins.  The dealer gives you ") + \
-				ColoredString("%s.\n" % moneyDelta)
+				ColoredString("%s.\n" % fmtMoney(moneyDelta))
 			playStr.display()
 			purse.change(moneyDelta)
 		elif outcome.score < dealer_bestscore:
@@ -487,7 +487,7 @@ def playRound(settings, dealer, purse):
 			playStr = ColoredText(ColoredString("Your play ")) + \
 				getPrintableListofCards(outcome.cardsPlayed) + \
 				ColoredString(" loses.  The dealer takes your ") + \
-				ColoredString("%s.\n" % outcome.bet)
+				ColoredString("%s.\n" % fmtMoney(outcome.bet))
 			playStr.display()
 			purse.change(moneyDelta)
 		else:
@@ -556,7 +556,7 @@ def playCoplayer(coplayer, cardcountObj, dealer, card_dealer):
 			finished = True
 			continue
 		action = coplayer.getAction(card_dealer)
-		if action == BJPlayerAction.Hit:
+		if action == bbj.BJPlayerAction.Hit:
 			card = dealer.getCard()
 			cardcountObj.add(card)
 			hitStr = ColoredText(ColoredString("Player %s hits and gets card " % coplayer)) + \
@@ -565,10 +565,10 @@ def playCoplayer(coplayer, cardcountObj, dealer, card_dealer):
 			hitStr.display()
 			coplayer.takeCards([card])
 			dealer.pause()
-		elif action == BJPlayerAction.Stand:
+		elif action == bbj.BJPlayerAction.Stand:
 			print("Player %s stands." % coplayer)
 			finished = True
-		elif action == BJPlayerAction.Double:
+		elif action == bbj.BJPlayerAction.Double:
 			card = dealer.getCard()
 			cardcountObj.add(card)
 			doubleStr = ColoredText(ColoredString("Player %s doubles down and gets card " % coplayer)) + \
@@ -577,18 +577,18 @@ def playCoplayer(coplayer, cardcountObj, dealer, card_dealer):
 			doubleStr.display()
 			finished = True
 			dealer.pause()
-		elif action == BJPlayerAction.Surrender:
+		elif action == bbj.BJPlayerAction.Surrender:
 			print("Player %s surrenders." % (coplayer))
 			finished = True
 
 def getPrintableListofCards(cardlist):
 	if len(cardlist) == 0:
-		return peafowlterm.ColoredString("[]")
-	cardStr = cardlist[0].getStrRepr() + peafowlterm.ColoredString(",")
+		return ColoredString("[]")
+	cardStr = cardlist[0].getStrRepr() + ColoredString(",")
 	for i in range(1, len(cardlist)):
 		cardStr += cardlist[i].getStrRepr()
 		if i < len(cardlist)-1:
-			cardStr += peafowlterm.ColoredString(",")
-	cardStr = peafowlterm.ColoredText(peafowlterm.ColoredString("[")) + cardStr + peafowlterm.ColoredString("]")
+			cardStr += ColoredString(",")
+	cardStr = ColoredText(ColoredString("[")) + cardStr + ColoredString("]")
 	return cardStr
 

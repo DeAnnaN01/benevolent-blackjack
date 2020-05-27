@@ -13,8 +13,9 @@
 
 import codecs
 import copy
-import peafowlterm
 import sys
+
+from bbj.peafowlterm import *
 
 class CardException(BaseException):
 	pass
@@ -52,20 +53,19 @@ class Card:
 		# Colors with 'bold' enabled appear to not display the card suits
 		# in some environments, replacing the correct Unicode symbol with
 		# a hollow rectangle.  To be safe, use non-bold colors.
-		blackSuitColor = peafowlterm.ColorScheme(peafowlterm.ColorNavy, peafowlterm.ColorGray)
-		redSuitColor = peafowlterm.ColorScheme(peafowlterm.ColorBrown, peafowlterm.ColorBrown)
-		suppUC = supportsUnicode(sys.stdout, u'\u2660')
-		stream = getUnicodeWriter(sys.stdout)
+		blackSuitColor = ColorScheme(ColorNavy, ColorGray)
+		redSuitColor = ColorScheme(ColorBrown, ColorBrown)
+		stream = sys.stdout
 		if self.suit == self.Suit_Cl:
-			suit = peafowlterm.ColoredString(u"\u2663" if suppUC else "c", blackSuitColor, stream)
+			suit = ColoredString("\u2663", blackSuitColor, stream)
 		elif self.suit == self.Suit_Di:
-			suit = peafowlterm.ColoredString(u"\u2666" if suppUC else "d", redSuitColor, stream)
+			suit = ColoredString("\u2666", redSuitColor, stream)
 		elif self.suit == self.Suit_He:
-			suit = peafowlterm.ColoredString(u"\u2665" if suppUC else "h", redSuitColor, stream)
+			suit = ColoredString("\u2665", redSuitColor, stream)
 		elif self.suit == self.Suit_Sp:
-			suit = peafowlterm.ColoredString(u"\u2660" if suppUC else "s", blackSuitColor, stream)
+			suit = ColoredString("\u2660", blackSuitColor, stream)
 		else:
-			raise CardException, "A card has an unknown suit."
+			raise CardException("A card has an unknown suit.")
 
 		if self.rank >= self.R_2 and self.rank <= self.R_10:
 			rank = str(self.rank)
@@ -78,25 +78,12 @@ class Card:
 		elif self.rank == self.R_Ac:
 			rank = "A"
 		else:
-			raise CardException, "A card has an unknown rank."
-		if suppUC:
-			self.__strRepr = peafowlterm.ColoredText(suit) + peafowlterm.ColoredString(rank, stream=stream)
-		else:
-			self.__strRepr = peafowlterm.ColoredText(peafowlterm.ColoredString(rank+"/", stream=stream)) + suit
+			raise CardException("A card has an unknown rank.")
+
+		self.__strRepr = ColoredText(suit) + ColoredString(rank, stream=stream)
 
 	def display(self):
 		self.__strRepr.display()
 
 	def getStrRepr(self):
-		v = copy.copy(self.__strRepr)
-		return v
-
-def supportsUnicode(stream, character):
-	try:
-		codecs.getencoder(stream.encoding)(character)
-	except UnicodeEncodeError:
-		return False
-	return True
-
-def getUnicodeWriter(stream):
-	return codecs.getwriter('utf8')(stream)
+		return self.__strRepr

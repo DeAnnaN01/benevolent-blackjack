@@ -11,8 +11,8 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 # more details.
 
-from BJException import *
-from Card import Card
+from bbj.BJException import *
+from bbj.Card import Card
 
 strategylist = [
 	# name		[ 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K, A]
@@ -55,7 +55,7 @@ class BJCardCount:
 				if s[0] == strategyName:
 					self.strategy = s
 			if self.strategy is None:
-				raise BJException, "The requested card-counting strategy is unrecognized."
+				raise BJException("The requested card-counting strategy is unrecognized.")
 		self.reset()
 
 	def add(self, card):

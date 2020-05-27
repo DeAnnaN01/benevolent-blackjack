@@ -13,7 +13,7 @@
 
 import random
 
-import Deck
+from bbj.Deck import Deck
 
 class ShoeException(BaseException):
 	pass
@@ -25,8 +25,8 @@ class Shoe:
 	entire deck of cards in his hands.
 	"""
 	def __init__(self, numdecks, deckClass):
-		if not issubclass(deckClass, Deck.Deck):
-			raise ShoeException, "Shoe must be instantiated with a subclass of Deck"
+		if not issubclass(deckClass, Deck):
+			raise ShoeException("Shoe must be instantiated with a subclass of Deck")
 		self.numdecks = numdecks
 		self.deckClass = deckClass
 		self.recreate()
@@ -36,7 +36,7 @@ class Shoe:
 		Draws the top card from from the first available deck.
 		"""
 		if self.numdecks == 0:
-			raise ShoeException, "The shoe is out of cards."
+			raise ShoeException("The shoe is out of cards.")
 		card = self.decks[0].draw()
 		if self.decks[0].size() == 0:
 			self.decks[0:1] = [] # remove this deck
@@ -48,7 +48,7 @@ class Shoe:
 		Draws the top card from from a randomly-chosen deck.
 		"""
 		if self.numdecks == 0:
-			raise ShoeException, "The shoe is out of cards."
+			raise ShoeException("The shoe is out of cards.")
 		decknum = random.randint(0, self.numdecks-1)
 		deck = self.decks[decknum]
 		card = deck.draw()

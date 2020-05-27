@@ -25,7 +25,7 @@ class Deck:
 
 	def draw(self):
 		if len(self.cards) == 0:
-			raise DeckException, 'no more cards to draw'
+			raise DeckException('no more cards to draw')
 		card = self.cards[len(self.cards)-1]
 		self.cards[-1:] = []
 		return card

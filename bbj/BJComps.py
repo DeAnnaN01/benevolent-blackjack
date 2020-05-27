@@ -11,7 +11,7 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 # more details.
 
-from CasinoComp import *
+from bbj.CasinoComp import *
 
 # The mathematical expectation for the casino as a decimal.
 BJCasinoExpectation = 0.015

@@ -11,7 +11,8 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 # more details.
 
-from BJException import *
+from bbj.BJException import *
+from bbj.money import fmtMoney
 
 # An instance of BJRuleset holds the set of rules for a Blackjack table.
 class BJRuleset:
@@ -41,26 +42,26 @@ class BJRuleset:
 
 	def numDecksSet(self, v):
 		if v < 1:
-			raise BJException, "The number of decks must be positive."
+			raise BJException("The number of decks must be positive.")
 		if v > 100:
-			raise BJException, "The number of decks must not be greater than 100."
+			raise BJException("The number of decks must not be greater than 100.")
 		self.numDecks = v
 
 	def tableMinSet(self, v):
 		if v < 0:
-			raise BJException, "The table minimum must be non-negative."
+			raise BJException("The table minimum must be non-negative.")
 		self.tableMin = v
 
 	def tableMaxSet(self, v):
 		if v < 0:
-			raise BJException, "The table maximum must be non-negative."
+			raise BJException("The table maximum must be non-negative.")
 		self.tableMax = v
 
 	def blackjackPayoutSet(self, v):
-		if not v.has_key('n') or not v.has_key('d'):
-			raise BJException, "The blackjack payout must be a ratio written as #:#."
+		if not 'n' in v or not 'd' in v:
+			raise BJException("The blackjack payout must be a ratio written as #:#.")
 		if v['d'] == 0:
-			raise BJException, "Hitting Blackjack must not end the universe."
+			raise BJException("Hitting Blackjack must not end the universe.")
 		self.blackjackPayout = v
 
 	def allowDoubleSet(self, v):
@@ -86,8 +87,8 @@ class BJRuleset:
 	def __str__(self):
 		msg = "== Table Rules ==\n"
 		msg += ("\tNumber of decks:         %d\n" % self.numDecks)
-		msg += ("\tTable minimum:           %s\n" % self.tableMin)
-		msg += ("\tTable maximum:           %s\n" % self.tableMax)
+		msg += ("\tTable minimum:           %s\n" % fmtMoney(self.tableMin))
+		msg += ("\tTable maximum:           %s\n" % fmtMoney(self.tableMax))
 		msg += ("\tReshuffle threshold:     %d cards remaining\n" % self.reshuffleThreshold)
 		msg += ("\tBlackjack payout:        %d:%d\n" % (self.blackjackPayout['n'], self.blackjackPayout['d']))
 		msg += ("\tAllow doubling:          %s\n" % ("yes" if self.allowDouble else "no"))

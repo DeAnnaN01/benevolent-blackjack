@@ -11,9 +11,11 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 # more details.
 
-from BJException import *
-import BJPlayerAction
-from Card import Card
+from functools import reduce
+
+from bbj.BJException import *
+import bbj.BJPlayerAction
+from bbj.Card import Card
 
 H = 0	# hit
 S = 1	# stand
@@ -136,16 +138,16 @@ def optimalFind(ruleset, cards_mine, card_dealer):
 		ideal = S
 
 	if ideal == H:
-		return BJPlayerAction.Hit
+		return bbj.BJPlayerAction.Hit
 	elif ideal == S:
-		return BJPlayerAction.Stand
+		return bbj.BJPlayerAction.Stand
 	elif ideal == Dh or ideal == Ds:
-		return BJPlayerAction.Double
+		return bbj.BJPlayerAction.Double
 	elif ideal == P:
-		return BJPlayerAction.Split
+		return bbj.BJPlayerAction.Split
 	elif ideal == U:
-		return BJPlayerAction.Surrender
-	raise BJException, "Could not find a proper action to return!"
+		return bbj.BJPlayerAction.Surrender
+	raise BJException("Could not find a proper action to return!")
 
 # getHardValue returns the value of any card, treating an Ace as 11 points.
 # Preconditions:

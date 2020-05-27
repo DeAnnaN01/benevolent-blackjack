@@ -14,26 +14,22 @@
 import datetime
 import getopt
 import random
-import sys
-import time
 
-import peafowltermutil.metadata
-import peafowlterm
-
-import BJCardCount
-import BJCardCountQuiz
-import BJComps
-import BJCoplayer
-import BJDealer
-import BJDeck
-import BJGame
-import BJRuleset
-import Purse
-import Shoe
-import Waitstaff
-import metadata
-from BJException import *
-from Dollars import *
+from bbj.BJCardCount import BJCardCount, isStrategyKnown
+from bbj.BJCardCountQuiz import BJCardCountQuiz
+from bbj.BJComps import chooseComp
+from bbj.BJCoplayer import BJCoplayer
+from bbj.BJDealer import BJDealer, Male, Female
+from bbj.BJDeck import BJDeck, numSuits
+from bbj.BJGame import playRound
+from bbj.Purse import Purse
+from bbj.Shoe import Shoe
+from bbj.Waitstaff import Waitstaff
+import bbj.metadata
+from bbj.money import fmtMoney
+from bbj.peafowlterm import *
+from bbj.BJRuleset import BJRuleset
+from bbj.BJException import *
 
 ExitNormal = 0
 ExitDependUnsat = 1
@@ -45,11 +41,9 @@ def showHeader():
 	print(  "    /^^^^,  //^^^^,   ^^^^\)    Benevolent Blackjack\n" \
 		"   /    /  //    /   $   //           version %s\n" \
 		"  /^^^^<  //^^^^<       //\n" \
-		" /    /  //    /       //  http://www.qnan.org/~pmw/software/bbj\n" \
+		" /    /  //    /       //  https://github.com/philipmw/benevolent-blackjack\n" \
 		"/____/  //____/   \___//\n" \
-		" Copyright 2010 Philip M. White <pmw@qnan.org>\n" \
-		" Licensed under GNU General Public License version 3\n" \
-		% metadata.versionstr)
+		% bbj.metadata.versionstr)
 
 def usage(progname):
 	print("Syntax: %s [[argument1] [argument2] ...]" % progname)
@@ -79,32 +73,7 @@ def usage(progname):
 	print("\t--soft17hit         : cause the dealer to hit on Soft 17")
 	print("\t--enable-5cc        : enable Five-Card Charlie")
 	print("\t--show-cardcount    : show card count before every round")
-	print("\nFor details, read this game's manpage.")
-
-# coloringGetStr returns a textual representation of the current coloring
-# scheme.
-# Preconditions: none
-# Postconditions:
-# - a string is returned
-def coloringGetStr():
-	if peafowlterm.coloring == peafowlterm.ColorSettingOff:
-		return "off"
-	elif peafowlterm.coloring == peafowlterm.ColorSettingBGDark:
-		return "colored for dark background"
-	elif peafowlterm.coloring == peafowlterm.ColorSettingBGLight:
-		return "colored for light background"
-	else:
-		return "[unrecognized]"
-
-# checkDependencies verifies that dependencies for BBJ are met and
-# displays an appropriate error if they're not.
-# Preconditions: none
-# Postconditions:
-# - raises an exception if dependencies are not met
-def checkDependencies():
-	peaver = peafowltermutil.metadata.version
-	if peaver.major != 1:
-		raise BJException("PeafowlTerm major version expected to be 1 but is %d." % peaver.major)
+	print("\nFor details, read this game's manpage and the Blackjack page on Wikipedia.")
 
 # getGameSettings processes the command-line arguments.
 # Preconditions: none
@@ -115,11 +84,11 @@ def checkDependencies():
 # - an exception is raised if a noteworthy error occurs
 def getGameSettings(args):
 	settings = {}
-	settings['ruleset'] = BJRuleset.BJRuleset(
-		4,		# number of decks
-		Dollars(10),	# table minimum
-		Dollars(100),	# table maximum
-		50,		# reshuffle when <= cards remain
+	settings['ruleset'] = BJRuleset(
+		4,			# number of decks
+		10,			# table minimum
+		100,		# table maximum
+		50,			# reshuffle when <= cards remain
 		{'n':3, 'd':2},	# Blackjack payout
 		True,		# allow double
 		True,		# allow surrender
@@ -128,13 +97,13 @@ def getGameSettings(args):
 		False,		# hit soft 17
 		False,		# five card charlie
 	)
-	settings['dealergender'] = BJDealer.Male if random.randint(0, 1) == 1 else BJDealer.Female
+	settings['dealergender'] = Male if random.randint(0, 1) == 1 else Female
 	settings['coplayright'] = 1
 	settings['coplayleft'] = 1
 	settings['dealerdelay'] = 2
-	settings['initbalance'] = Dollars(500)
+	settings['initbalance'] = 500
 	settings['benevolent'] = False
-	settings['cardcount'] = BJCardCount.BJCardCount()
+	settings['cardcount'] = BJCardCount()
 	settings['cardcount-quiz'] = 0
 	settings['cardcount-show'] = False
 	try:
@@ -163,8 +132,8 @@ def getGameSettings(args):
 			'enable-5cc',
 			'show-cardcount',
 		])
-	except getopt.GetoptError, e:
-		print e
+	except getopt.GetoptError as e:
+		print(e)
 		return None
 
 	for o, a in opts:
@@ -172,26 +141,26 @@ def getGameSettings(args):
 			usage(sys.argv[0])
 			return None
 		if o == '--version':
-			print("%s" % metadata.versionstr)
+			print("%s" % bbj.metadata.versionstr)
 			return None
 		elif o == '--dealergender':
 			if a == 'm' or a == 'f':
-				settings['dealergender'] = BJDealer.Male if a == 'm' else BJDealer.Female
+				settings['dealergender'] = Male if a == 'm' else Female
 			else:
-				raise BJException, "The dealer gender must be 'm' for male or 'f' for female."
+				raise BJException("The dealer gender must be 'm' for male or 'f' for female.")
 		elif o == '--numdecks':
 			try:
 				v = int(a)
 			except ValueError:
-				raise BJException, "The number of decks must be an integer."
+				raise BJException("The number of decks must be an integer.")
 			settings['ruleset'].numDecksSet(v)
 		elif o == '--coplayleft' or o == '--coplayright':
 			try:
 				v = int(a)
 			except ValueError:
-				raise BJException, "The number of coplayers must be an integer."
+				raise BJException("The number of coplayers must be an integer.")
 			if v < 0:
-				raise BJException, "The number of coplayers must be non-negative."
+				raise BJException("The number of coplayers must be non-negative.")
 			if o == '--coplayleft':
 				settings['coplayleft'] = v
 			else:
@@ -200,66 +169,66 @@ def getGameSettings(args):
 			try:
 				v = int(a)
 			except ValueError:
-				raise BJException, "The dealer delay must be an integer."
+				raise BJException("The dealer delay must be an integer.")
 			if v < 0:
-				raise BJException, "The dealer delay must be non-negative."
+				raise BJException("The dealer delay must be non-negative.")
 			settings['dealerdelay'] = v
 		elif o == '--tablemin':
 			try:
 				v = int(a)
 			except ValueError:
-				raise BJException, "The table minimum must be an integer."
-			settings['ruleset'].tableMinSet(Dollars(v))
+				raise BJException("The table minimum must be an integer.")
+			settings['ruleset'].tableMinSet(v)
 		elif o == '--tablemax':
 			try:
 				v = int(a)
 			except ValueError:
-				raise BJException, "The table maximum must be an integer."
-			settings['ruleset'].tableMaxSet(Dollars(v))
+				raise BJException("The table maximum must be an integer.")
+			settings['ruleset'].tableMaxSet(v)
 		elif o == '--shufflethresh':
 			try:
 				v = int(a)
 			except ValueError:
-				raise BJException, "The shuffle threshold must be an integer."
+				raise BJException("The shuffle threshold must be an integer.")
 			settings['ruleset'].reshuffleThresholdSet(v)
 		elif o == '--bjpayout':
 			colon = a.find(':')
 			if colon is None:
-				raise BJException, "The Blackjack payout is malformed; must be '#:#'."
+				raise BJException("The Blackjack payout is malformed; must be '#:#'.")
 			try:
 				numer = int(a[:colon])
 				denom = int(a[colon+1:])
 			except ValueError:
-				raise BJException, "The Blackjack payout is malformed; must be '#:#'."
+				raise BJException("The Blackjack payout is malformed; must be '#:#'.")
 			settings['ruleset'].blackjackPayoutSet({'n': numer, 'd': denom})
 		elif o == '--initbalance':
 			try:
 				v = int(a)
 			except ValueError:
-				raise BJException, "The initial balance must be an integer."
+				raise BJException("The initial balance must be an integer.")
 			if v <= 0:
-				raise BJException, "The initial balance must be positive."
-			settings['initbalance'] = Dollars(v)
+				raise BJException("The initial balance must be positive.")
+			settings['initbalance'] = v
 		elif o == '--countstrategy':
-			if not BJCardCount.isStrategyKnown(a):
-				raise BJException, "The name of the card-counting strategy is unrecognized."
-			settings['cardcount'] = BJCardCount.BJCardCount(a)
+			if not isStrategyKnown(a):
+				raise BJException("The name of the card-counting strategy is unrecognized.")
+			settings['cardcount'] = BJCardCount(a)
 		elif o == '--countquiz':
 			try:
 				v = int(a)
 			except ValueError:
-				raise BJException, "The card-count quiz interval must be an integer."
+				raise BJException("The card-count quiz interval must be an integer.")
 			if v < 0:
-				raise BJException, "The card-count quiz interval must be non-negative."
+				raise BJException("The card-count quiz interval must be non-negative.")
 			settings['cardcount-quiz'] = v
-			settings['cardcount-quizObj'] = BJCardCountQuiz.BJCardCountQuiz()
+			settings['cardcount-quizObj'] = BJCardCountQuiz()
 		elif o == '--coloring':
-			if not peafowlterm.coloringSupported():
-				raise BJException, "Terminal colors are not supported in your environment."
+			if not coloringSupported():
+				raise BJException("Terminal colors are not supported in your environment.")
 			try:
-				peafowlterm.coloringSet(a)
-			except peafowlterm.PeafowltermError as e:
-				raise BJException, "Coloring setting rejected: %s" % e
+				coloringSet(a)
+			except PeafowltermError as e:
+				raise BJException("Coloring setting rejected: %s" % e)
 		elif o == '--benevolent':
 			settings['benevolent'] = True
 		elif o == '--disallow-double':
@@ -279,13 +248,13 @@ def getGameSettings(args):
 
 	# Check for consistency
 	if settings['ruleset'].tableMin > settings['ruleset'].tableMax:
-		raise BJException, "The table minimum must not be greater than the table maximum."
+		raise BJException("The table minimum must not be greater than the table maximum.")
 	if settings['cardcount-show'] and not settings['cardcount'].isEnabled():
-		raise BJException, "To show card count, a card-counting strategy must be selected."
+		raise BJException("To show card count, a card-counting strategy must be selected.")
 	if settings['cardcount-quiz'] and not settings['cardcount'].isEnabled():
-		raise BJException, "To quiz about the card count, a card-counting strategy must be selected."
+		raise BJException("To quiz about the card count, a card-counting strategy must be selected.")
 	if settings['coplayleft'] + settings['coplayright'] > 6:
-		raise BJException, "The maximum number of players, including yourself, at a table is 7."
+		raise BJException("The maximum number of players, including yourself, at a table is 7.")
 
 	return settings
 
@@ -310,7 +279,7 @@ def findMaxCardsRequired(numDecks, numPlayersAtTable):
 				cardValueNum = 0
 		return lowestValueAvail, cardValueNum, cardsUsed
 
-	numCardsPerValue = numDecks * BJDeck.numSuits
+	numCardsPerValue = numDecks * numSuits
 	# The required score is 18 points for the dealer since he may have to hit on soft 17
 	lowestValueAvail, cardValueNum, cardsUsed = findMaxCardsForSequence(18, 1, 0)
 	# Here we have one more iteration than the number of players because
@@ -445,38 +414,32 @@ def reshuffle(dealer, settings):
 # - an integer is returned suitable for returning to the operating system
 def run():
 	try:
-		checkDependencies()
-	except BJException, e:
-		sys.stderr.write("Dependencies for Benevolent Blackjack are not met.\nProblem: %s\n" % e)
-		return ExitDependUnsat
-
-	try:
 		settings = getGameSettings(sys.argv[1:])
-	except BJException, e:
+	except BJException as e:
 		sys.stderr.write("Error: %s\n" % e)
 		return ExitConfigurationProblem
 	if settings is None:
 		return ExitNormal
 	showHeader()
 
-	dealer = BJDealer.BJDealer(settings['dealergender'], Shoe.Shoe(settings['ruleset'].numDecks, BJDeck.BJDeck), settings['ruleset'].reshuffleThreshold, settings['dealerdelay'])
+	dealer = BJDealer(settings['dealergender'], Shoe(settings['ruleset'].numDecks, BJDeck), settings['ruleset'].reshuffleThreshold, settings['dealerdelay'])
 	del settings['dealergender']
 	del settings['dealerdelay']
-	purse = Purse.Purse(settings['initbalance'], False)
+	purse = Purse(settings['initbalance'], False)
 	# Initialize coplayers
 	settings['coplayObjRight'] = []
 	settings['coplayObjLeft'] = []
 	for i in range(settings['coplayright']):
-		settings['coplayObjRight'].append(BJCoplayer.BJCoplayer())
+		settings['coplayObjRight'].append(BJCoplayer())
 	for i in range(settings['coplayleft']):
-		settings['coplayObjLeft'].append(BJCoplayer.BJCoplayer())
+		settings['coplayObjLeft'].append(BJCoplayer())
 	
 	print(settings['ruleset'])
 	print("== Game Settings ==")
 	print("\tBenevolent:              %s" % ("yes" if settings['benevolent'] else "no"))
 	print("\tCoplayers to your right: %d" % settings['coplayleft'])
 	print("\tCoplayers to your left:  %d" % settings['coplayleft'])
-	print("\tDealer gender:           %s" % ('male' if dealer.gender == BJDealer.Male else 'female'))
+	print("\tDealer gender:           %s" % ('male' if dealer.gender == Male else 'female'))
 	print("\tDealer delay:            %d seconds" % dealer.delay)
 	print("\tCard counting strategy:  %s" % settings['cardcount'])
 	print("\tShow card count:         %s" % ("yes" if settings['cardcount-show'] else "no"))
@@ -497,12 +460,11 @@ def run():
 		sys.stderr.write("With %d players at the table, %d deck(s) should be reshuffled when shoe has %d cards or fewer.\n" % (numPlayersAtTable, settings['ruleset'].numDecks, minShoeSize-1))
 		sys.stderr.write("\n")
 
-	waitstaff = Waitstaff.Waitstaff(settings['ruleset'].tableMin)
+	waitstaff = Waitstaff(settings['ruleset'].tableMin)
 	retcode = None
 	rounds_played = 0
-	total_wagered = Dollars(0)
+	total_wagered = 0
 	ts_start = datetime.datetime.now()
-	last_countquiz_offset = 0
 	while retcode is None:
 		waitstaff.makeRound()
 		print("")
@@ -512,10 +474,10 @@ def run():
 				settings['cardcount-quizObj'].guessMake(guess, settings['cardcount'].get())
 			if settings['cardcount'].isEnabled() and settings['cardcount-show']:
 				print("Current card count: %d" % settings['cardcount'].get())
-			roundOutcome = BJGame.playRound(settings, dealer, purse)
+			roundOutcome = playRound(settings, dealer, purse)
 			total_wagered += roundOutcome.bet
 			rounds_played += 1
-		except BJException, e:
+		except BJException as e:
 			sys.stderr.write("Error: %s\n" % e)
 			retcode = ExitProblem
 			continue
@@ -546,7 +508,7 @@ def run():
 	print("You played %d rounds and %s %s in %s." % (
 		rounds_played,
 		'won' if money_diff >= 0 else 'lost',
-		abs(money_diff),
+		fmtMoney(abs(money_diff)),
 		timeDiffGetStr(time_diff),
 		))
 	mins_played = timeDiffGetMinutes(time_diff)
@@ -554,14 +516,14 @@ def run():
 		print("That's about %d rounds/hour, %s/round, and %s/hour." % (
 			(rounds_played * 60 / mins_played),
 			money_diff / rounds_played,
-			(money_diff * 60 / mins_played),
+			fmtMoney(money_diff * 60 / mins_played),
 		))
 
 	if settings['cardcount-quiz'] > 0:
 		print("")
 		cardcountStatsShow(settings['cardcount-quizObj'])
 
-	comp = BJComps.chooseComp(rounds_played, mins_played, total_wagered)
+	comp = chooseComp(rounds_played, mins_played, total_wagered)
 	if comp is not None:
 		print("")
 		print("Before you leave, the pit boss pulls you aside and thanks you for your patronage.")

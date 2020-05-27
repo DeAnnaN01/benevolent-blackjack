@@ -11,7 +11,7 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 # more details.
 
-from Money import *
+from bbj.money import fmtMoney
 
 class PurseException(BaseException):
 	pass
@@ -24,7 +24,7 @@ class Purse:
 	def __init__(self, amt, verbose=False):
 		self.balance = amt
 		self.verbose = verbose
-		self.reserved = amt - amt	# a way to get 0 units of whatever Money type we get
+		self.reserved = 0
 
 	def canReserve(self, amt):
 		if amt < 0:
@@ -35,16 +35,16 @@ class Purse:
 
 	def reserve(self, amt):
 		if amt < 0:
-			raise PurseException, "Cannot reserve a negative amount."
+			raise PurseException("Cannot reserve a negative amount.")
 		if self.balance < self.reserved + amt:
-			raise PurseException, "Insufficient balance."
+			raise PurseException("Insufficient balance.")
 		self.reserved += amt
 
 	def release(self, amt):
 		if amt < 0:
-			raise PurseException, "Cannot release a negative amount."
+			raise PurseException("Cannot release a negative amount.")
 		if amt > self.reserved:
-			raise PurseException, "Cannot release more than is reserved."
+			raise PurseException("Cannot release more than is reserved.")
 		self.reserved -= amt
 
 	def change(self, amount):
@@ -52,9 +52,9 @@ class Purse:
 			return
 		self.balance += amount
 		if amount > 0:
-			self.selectivePrint("Your balance increases by %s." % amount)
+			self.selectivePrint("Your balance increases by %s." % fmtMoney(amount))
 		else:
-			self.selectivePrint("Your balance decreases by %s." % (amount*(-1)))
+			self.selectivePrint("Your balance decreases by %s." % fmtMoney(amount*(-1)))
 
 	def getReservable(self):
 		return self.balance - self.reserved
@@ -67,4 +67,4 @@ class Purse:
 			print(msg)
 
 	def __str__(self):
-		return str(self.balance)
+		return fmtMoney(self.balance)

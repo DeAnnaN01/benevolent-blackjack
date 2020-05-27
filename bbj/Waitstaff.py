@@ -13,8 +13,6 @@
 
 import random
 
-from Dollars import *
-
 class Waitstaff:
 	def __init__(self, tableMin):
 		self.tableMin = tableMin
