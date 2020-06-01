@@ -12,7 +12,7 @@
 # more details.
 
 productname = 'Benevolent Blackjack'
-versionstr = '1.0.dev1'
+versionstr = '1.0'
 copyright = 'Copyright (C) 2012 Philip M. White'
 author = 'Philip M. White'
 author_email = 'philip@mailworks.org'

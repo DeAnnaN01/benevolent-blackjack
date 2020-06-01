@@ -26,7 +26,7 @@ Features
 Installing and running
 ======================
 
-I wish all computers would come with Benevolent Blackjack by default, but til then, you can install this game from PyPI.
+I wish all computers would come with Benevolent Blackjack by default, but til then, you can install this game from [PyPI](https://pypi.org/project/Benevolent-Blackjack/).
 
 Using the command line,
 
