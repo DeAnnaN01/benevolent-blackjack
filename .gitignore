@@ -1,0 +1,9 @@
+# dev environment
+/.idea
+.DS_Store
+
+# build artifacts
+/build
+/dist
+Benevolent_Blackjack.egg-info/
+*.pyc
