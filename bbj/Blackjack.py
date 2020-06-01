@@ -515,7 +515,7 @@ def run():
 	if rounds_played > 0 and mins_played > 0:
 		print("That's about %d rounds/hour, %s/round, and %s/hour." % (
 			(rounds_played * 60 / mins_played),
-			money_diff / rounds_played,
+			fmtMoney(money_diff / rounds_played),
 			fmtMoney(money_diff * 60 / mins_played),
 		))
 
